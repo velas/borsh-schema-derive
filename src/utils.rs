@@ -11,6 +11,8 @@ use std::path::Path;
 #[macro_export]
 macro_rules! construct_layouts {
     ($($item:ident),+) => {{
+        use $crate::layout::Layout;
+        use borsh::BorshSchema;
 
         let mut layouts = Vec::new();
         $( 
