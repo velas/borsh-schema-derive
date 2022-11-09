@@ -13,7 +13,7 @@ repository = "https://github.com/agoraxyz/agora-solana"
 anyhow = { version = "1.0" }
 heck = { version = "0.3.3" }
 quote = { version = "1.0" }
-syn = { version = "1.0", features = ["full", "parsing", "extra-traits"] }
+syn = { version = "1.0", features = ["full", "extra-traits"] }
 borsh = "0.9.1"
 
 [dev-dependencies]
