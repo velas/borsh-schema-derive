@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@velas/web3": "=0.1.7",
-    "ts-borsh-schema": "git+https://github.com/dj8yfo/ts-borsh-schema.git",
     "bn.js": "^5.0.0",
     "borsh": "^0.7.0"
   }
