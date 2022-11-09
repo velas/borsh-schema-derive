@@ -1,9 +1,8 @@
 use super::BorshType;
 use heck::MixedCase;
-use proc_macro2::TokenStream;
-use quote::ToTokens;
 
 use std::str::FromStr;
+use anyhow::anyhow;
 
 /// Represents a field in a TypeScript class and a borsh schema.
 #[derive(Debug)]
@@ -13,25 +12,20 @@ pub struct LayoutField {
 }
 
 impl LayoutField {
-    /// Converts a [`Field`](syn::Field) type into a layout field by extracting
-    /// its name and type.
-    pub fn from_tokens(field: &syn::Field, n: usize) -> Result<Self, anyhow::Error> {
-        let name = if let Some(field_name) = field.ident.as_ref() {
-            field_name.to_string().to_mixed_case()
+    pub fn from_declaration(
+        name: Option<&str>,
+        field: &str,
+        idx: Option<usize>,
+    ) -> Result<Self, anyhow::Error> {
+        let name = if let Some(name) = name {
+            name.to_mixed_case()
         } else {
-            format!("unnamed_{}", n)
+            format!(
+                "unnamed_{}",
+                idx.map_or(Err(anyhow!("no index provided")), Ok)?
+            )
         };
-        let ty = if let Some(alias) = field.attrs.iter().find(|attr| attr.path.is_ident("alias")) {
-            BorshType::from_str(&alias.parse_args::<TokenStream>()?.to_string())?
-        } else if field
-            .attrs
-            .iter()
-            .any(|attr| attr.path.is_ident("schema_skip"))
-        {
-            BorshType::Skip
-        } else {
-            BorshType::from_str(&field.ty.to_token_stream().to_string())?
-        };
+        let ty = BorshType::from_str(field)?;
         Ok(Self { name, ty })
     }
 
@@ -61,23 +55,12 @@ impl LayoutField {
 #[cfg(test)]
 mod test {
     use super::*;
-    use proc_macro2::{Span, TokenStream};
-    use syn::token::Colon;
-    use syn::{Ident, Type, Visibility};
 
     #[test]
     fn simple_field_construction() {
-        let syn_field = syn::Field {
-            attrs: Vec::new(),
-            vis: Visibility::Inherited,
-            ident: Some(Ident::new("random_field", Span::call_site())),
-            colon_token: Some(Colon {
-                spans: [Span::call_site(); 1],
-            }),
-            ty: Type::Verbatim(TokenStream::from_str("u8").unwrap()),
-        };
-
-        let field = LayoutField::from_tokens(&syn_field, 0).unwrap();
+        let field =
+            LayoutField::from_declaration(Some(&"random_field".to_owned()), "u8", None)
+                .unwrap();
 
         assert_eq!(field.name, "randomField");
         assert_eq!(field.ty, BorshType::U8);
@@ -85,22 +68,20 @@ mod test {
 
     #[test]
     fn complex_field_construction() {
-        let syn_field = syn::Field {
-            attrs: Vec::new(),
-            vis: Visibility::Inherited,
-            ident: Some(Ident::new("optional_accounts", Span::call_site())),
-            colon_token: Some(Colon {
-                spans: [Span::call_site(); 1],
-            }),
-            ty: syn::parse_str("[Option<Pubkey>; 3]").unwrap(),
-        };
-
-        let field = LayoutField::from_tokens(&syn_field, 0).unwrap();
+        let field = LayoutField::from_declaration(
+            Some(&"optional_accounts".to_owned()),
+            "Array<Option<Pubkey>, 3>",
+            None,
+        )
+        .unwrap();
 
         assert_eq!(field.name, "optionalAccounts");
         assert_eq!(
             field.ty,
-            BorshType::FixedArray(Box::new(BorshType::Option(Box::new(BorshType::Pubkey))), 3)
+            BorshType::FixedArray(
+                Box::new(BorshType::Option(Box::new(BorshType::Pubkey))),
+                3
+            )
         );
     }
 
@@ -137,6 +118,6 @@ mod test {
             name: "fieldGamma".to_owned(),
             ty: BorshType::Option(Box::new(BorshType::FixedBytes(32))),
         };
-        assert_eq!(field.to_class_field(), "fieldGamma: [32] | null");
+        assert_eq!(field.to_class_field(), "fieldGamma: Uint8Array | null");
     }
 }

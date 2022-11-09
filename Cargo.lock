@@ -6,24 +6,15 @@ version = 3
 name = "agsol-borsh-schema"
 version = "0.0.2"
 dependencies = [
- "agsol-borsh-schema-derive",
  "anyhow",
  "borsh",
  "borsh-derive",
  "heck",
- "proc-macro2",
+ "itertools",
  "quote",
  "serde",
  "serde_json",
  "solana-program",
- "syn",
-]
-
-[[package]]
-name = "agsol-borsh-schema-derive"
-version = "0.0.1"
-dependencies = [
- "quote",
  "syn",
 ]
 

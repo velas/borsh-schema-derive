@@ -1,12 +1,22 @@
 use super::TEST_DATA_DIRECTORY;
-use crate::{BorshSchemaTS, generate_layout_from_file};
 
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::{BorshSchema, BorshDeserialize, BorshSerialize};
 use serde::Serialize;
 
 use std::fs;
 use std::io::Write;
+use crate::layout::Layout;
 
+
+type UnixTimestamp = i64;
+
+pub type Amount = u64;
+
+#[derive(BorshSchema, BorshSerialize, BorshDeserialize, Clone, Copy, Debug)]
+pub struct OtherState {
+    amount: Amount,
+    timestamp: UnixTimestamp,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,40 +26,40 @@ struct TestData {
     tuple_struct: Vec<u8>,
 }
 
-type UnixTimestamp = i64;
-pub type Amount = u64;
 type StatePool = Option<Vec<OtherState>>;
 
 #[allow(dead_code)]
-#[derive(BorshSchemaTS, BorshSerialize, BorshDeserialize, Clone, Debug)]
+#[derive(BorshSchema, BorshSerialize, BorshDeserialize, Clone, Debug)]
 pub struct TestStruct {
     field_a: u64,
     field_b: u8,
-    #[alias(Option<Vec<OtherState>>)]
+    // #[alias(Option<Vec<OtherState>>)]
     field_c: StatePool,
-    #[schema_skip]
     #[borsh_skip]
     skipped_field: Option<u32>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, Clone, Copy, Debug)]
-#[cfg_attr(test, derive(BorshSchemaTS))]
-pub struct OtherState {
-    #[alias(u64)]
-    amount: Amount,
-    timestamp: UnixTimestamp,
-}
 
-#[derive(BorshSchemaTS, BorshSerialize, BorshDeserialize, Clone, Debug)]
+#[derive(BorshSchema, BorshSerialize, BorshDeserialize, Clone, Debug)]
 pub struct TupleStruct(u8, pub i32, pub OtherState);
+
 
 #[test]
 fn generate_layout_from_this_file() {
-    let layouts = generate_layout_from_file("src/test/borsh_structs.rs").unwrap();
-    assert_eq!(layouts.len(), 3);
-    assert_eq!(layouts[0].name, "TestStruct");
-    assert_eq!(layouts[1].name, "OtherState");
-    assert_eq!(layouts[2].name, "TupleStruct");
+    let container = <OtherState as BorshSchema>::schema_container();
+    let other_state_l = Layout::from_borsh_container(container).unwrap();
+
+    assert_eq!(other_state_l[0].name, "OtherState");
+
+    let container = <TupleStruct as BorshSchema>::schema_container();
+    let tuple_struct_l = Layout::from_borsh_container(container).unwrap();
+    
+    assert_eq!(tuple_struct_l[0].name, "TupleStruct");
+    //
+    let container = <TestStruct as BorshSchema>::schema_container();
+    let test_struct_l = Layout::from_borsh_container(container).unwrap();
+
+    assert_eq!(test_struct_l[0].name, "TestStruct");
 
     let test_struct_none = TestStruct {
         field_a: 45678910,
@@ -93,3 +103,4 @@ fn generate_layout_from_this_file() {
         fs::File::create(String::from(TEST_DATA_DIRECTORY) + "/test_structs.json").unwrap();
     write!(file, "{}", serde_json::to_string(&test_data).unwrap()).unwrap();
 }
+
