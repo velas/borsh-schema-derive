@@ -1,5 +1,6 @@
 mod borsh_type;
 mod field;
+mod borsh_container;
 pub use borsh_type::BorshType;
 pub use field::LayoutField;
 
@@ -21,21 +22,6 @@ pub struct Layout {
 }
 
 impl Layout {
-    /// Generates a layout from the underlying token stream.
-    pub fn from_tokens(
-        name: &str,
-        fields: &mut dyn Iterator<Item = &syn::Field>,
-    ) -> Result<Self, anyhow::Error> {
-        let fields = fields
-            .enumerate()
-            .map(|(i, x)| LayoutField::from_tokens(x, i))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Self {
-            name: name.to_string(),
-            kind: Kind::Struct,
-            fields,
-        })
-    }
 
     /// Converts the layout into a TypeScript class.
     pub fn to_ts_class(&self) -> String {
