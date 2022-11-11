@@ -33,7 +33,7 @@ import BN from "bn.js";
 const borshPublicKeyHack = () => {
 	// "borsh": "^0.7.0"
 
-	// agsol-borsh-schema/test-rs-output-ts-input/node_modules/borsh/lib/index.js:258
+	// borsh-schema-derive/test-rs-output-ts-input/node_modules/borsh/lib/index.js:258
 	//             writer[`write${capitalizeFirstLetter(fieldType)}`](value);
 	//                                                               ^
 	// TypeError: writer[capitalizeFirstLetter(...)] is not a function

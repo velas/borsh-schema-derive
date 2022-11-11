@@ -1,7 +1,7 @@
+/Cargo.lock
 .vim-bookmarks
 /target
 /test-data
 test-rs-output-ts-input/schema.ts
 test-rs-output-ts-input/node_modules
-/agsol-borsh-schema-derive/target/
 /etalon-schema.ts

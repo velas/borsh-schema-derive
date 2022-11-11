@@ -1,12 +1,12 @@
 [package]
-name = "agsol-borsh-schema"
+name = "borsh-schema-derive"
 version = "0.0.2"
 edition = "2021"
 license = "MIT"
 authors = ["Agora DAO <mark@gold.xyz>", "dj8yf0μl"]
-keywords = ["borsh", "serialization", "web3", "solana"]
+keywords = ["borsh", "serialization", "web3", "solana", "velas"]
 description = "Parser that generates TypeScript code for Borsh serialization"
-repository = "https://github.com/agoraxyz/agora-solana"
+repository = "https://github.com/velas/borsh-schema-derive"
 
 
 [dependencies]
